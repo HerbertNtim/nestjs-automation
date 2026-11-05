@@ -23,6 +23,14 @@ describe('AppController (e2e)', () => {
       .expect('Hello World!');
   });
 
+  it('executes the hello GraphQL query', () => {
+    return request(app.getHttpServer())
+      .post('/graphql')
+      .send({ query: '{ hello }' })
+      .expect(200)
+      .expect({ data: { hello: 'Hello World!' } });
+  });
+
   afterEach(async () => {
     await app.close();
   });
