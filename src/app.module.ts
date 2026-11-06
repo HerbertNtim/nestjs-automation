@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -7,6 +7,8 @@ import { AppController } from './app.controller';
 import { AppResolver } from './app.resolver';
 import { AppService } from './app.service';
 import { TimetableModule } from './timetable/timetable.module';
+
+const logger = new Logger('MongoDB');
 
 @Module({
   imports: [
@@ -22,20 +24,20 @@ import { TimetableModule } from './timetable/timetable.module';
 
         return {
           uri,
-          connectionFactory: (connection) => {
+          onConnectionCreate: (connection) => {
+            logger.log('Connecting to MongoDB');
+
             connection.on('connected', () => {
-              console.log('MongoDB connected successfully');
+              logger.log('Connected successfully');
             });
 
             connection.on('disconnected', () => {
-              console.log('MongoDB disconnected');
+              logger.warn('Disconnected');
             });
 
             connection.on('error', (error: Error) => {
-              console.error('MongoDB connection error:', error.message);
+              logger.error(`Connection error: ${error.message}`, error.stack);
             });
-
-            return connection;
           },
         };
       },
