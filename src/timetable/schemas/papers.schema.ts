@@ -23,7 +23,7 @@ export class Papers {
   session: number;
 
   @Prop({
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Room' }],
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Rooms' }],
     required: true,
   })
   rooms: Types.ObjectId[];
@@ -52,7 +52,7 @@ export class Papers {
   time: string;
 
   @Prop({
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Examiner' }],
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Examiners' }],
   })
   examiners: Types.ObjectId[];
 

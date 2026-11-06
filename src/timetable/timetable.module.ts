@@ -1,4 +1,4 @@
-import { Papers, PapersSchema } from './schemas/paper.schema';
+import { Papers, PapersSchema } from './schemas/papers.schema';
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { TimetableController } from './timetable.controller';
