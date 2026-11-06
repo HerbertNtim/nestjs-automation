@@ -6,6 +6,7 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { AppController } from './app.controller';
 import { AppResolver } from './app.resolver';
 import { AppService } from './app.service';
+import { TimetableModule } from './timetable/timetable.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { AppService } from './app.service';
         };
       },
     }),
+    TimetableModule,
   ],
   controllers: [AppController],
   providers: [AppService, AppResolver],
