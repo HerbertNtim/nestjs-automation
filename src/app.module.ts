@@ -19,9 +19,24 @@ import { TimetableModule } from './timetable/timetable.module';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
         const uri = configService.getOrThrow<string>('MONGODB_URI');
-        console.log(`Connected to MongoDB at ${uri}`);
+
         return {
           uri,
+          connectionFactory: (connection) => {
+            connection.on('connected', () => {
+              console.log('MongoDB connected successfully');
+            });
+
+            connection.on('disconnected', () => {
+              console.log('MongoDB disconnected');
+            });
+
+            connection.on('error', (error: Error) => {
+              console.error('MongoDB connection error:', error.message);
+            });
+
+            return connection;
+          },
         };
       },
     }),

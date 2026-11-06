@@ -1,4 +1,8 @@
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
-export class TimetableService {}
+export class TimetableService {
+  getHello(): string {
+    return 'Hello Timetable!';
+  }
+}
