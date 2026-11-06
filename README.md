@@ -35,7 +35,7 @@ $ pnpm install
 
 1. Create a free cluster in [MongoDB Atlas](https://www.mongodb.com/atlas), add a database user, and allow your development IP address under **Network Access**.
 2. In the cluster's **Connect** dialog, choose **Drivers** and copy the connection string.
-3. Create `.env` from `.env.example`, or update `MONGODB_URI` in your existing `.env`. Replace the username, password, and cluster host; URL-encode any special characters in the password. Keep the database name `examination_db` or change it to the database you want to use.
+3. Keep your existing `.env` and set `MONGODB_URI` to the Atlas connection string. Replace the username, password, and cluster host; URL-encode any special characters in the password. The app uses `examination_db` by default; optionally set `MONGODB_DATABASE` to use another database.
 4. Start the app:
 
 ```bash

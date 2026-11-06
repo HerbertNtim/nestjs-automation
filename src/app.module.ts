@@ -16,9 +16,13 @@ import { AppService } from './app.service';
     }),
     MongooseModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        uri: configService.getOrThrow<string>('MONGODB_URI'),
-      }),
+      useFactory: (configService: ConfigService) => {
+        const uri = configService.getOrThrow<string>('MONGODB_URI');
+        console.log(`Connected to MongoDB at ${uri}`);
+        return {
+          uri,
+        };
+      },
     }),
   ],
   controllers: [AppController],
