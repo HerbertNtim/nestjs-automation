@@ -24,7 +24,12 @@ const logger = new Logger('MongoDB');
 
         return {
           uri,
-          onConnectionCreate: (connection) => {
+          lazyConnection: true,
+          family: 4,
+          serverSelectionTimeoutMS: 5000,
+          connectTimeoutMS: 5000,
+          
+          connectionFactory: (connection) => {
             logger.log('Connecting to MongoDB');
 
             connection.on('connected', () => {
@@ -38,6 +43,8 @@ const logger = new Logger('MongoDB');
             connection.on('error', (error: Error) => {
               logger.error(`Connection error: ${error.message}`, error.stack);
             });
+
+            return connection;
           },
         };
       },
