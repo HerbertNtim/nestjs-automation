@@ -1,3 +1,4 @@
+import { TimetableResolver } from './timetable.resolver';
 import { Papers, PapersSchema } from './schemas/papers.schema';
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -15,6 +16,6 @@ import { Rooms, RoomsSchema } from './schemas/rooms.schema';
     ]),
   ],
   controllers: [TimetableController],
-  providers: [TimetableService],
+  providers: [TimetableResolver, TimetableService],
 })
 export class TimetableModule {}
