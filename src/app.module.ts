@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -6,6 +6,8 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { AppController } from './app.controller';
 import { AppResolver } from './app.resolver';
 import { AppService } from './app.service';
+
+const logger = new Logger('MongoDB');
 
 @Module({
   imports: [
@@ -17,10 +19,21 @@ import { AppService } from './app.service';
     MongooseModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
-        const uri = configService.getOrThrow<string>('MONGODB_URI');
-        console.log(`Connected to MongoDB at ${uri}`);
         return {
-          uri,
+          uri: configService.getOrThrow<string>('MONGODB_URI'),
+          dbName: configService.get<string>(
+            'MONGODB_DATABASE',
+            'examination_db',
+          ),
+          onConnectionCreate: (connection) => {
+            connection.on('connected', () => logger.log('Connected to MongoDB'));
+            connection.on('disconnected', () =>
+              logger.warn('Disconnected from MongoDB'),
+            );
+            connection.on('error', (error: Error) =>
+              logger.error('MongoDB connection error', error.stack),
+            );
+          },
         };
       },
     }),
