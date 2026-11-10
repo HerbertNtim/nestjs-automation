@@ -25,6 +25,8 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+See [NESTJS-SYSTEM-WORKFLOW.md](./NESTJS-SYSTEM-WORKFLOW.md) for the current NestJS request flow and the target migration workflow for the documented system.
+
 ## Project setup
 
 ```bash
