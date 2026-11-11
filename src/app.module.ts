@@ -7,6 +7,7 @@ import { AppController } from './app.controller';
 import { AppResolver } from './app.resolver';
 import { AppService } from './app.service';
 import { TimetableModule } from './timetable/timetable.module';
+import { RoomsModule } from './rooms/rooms.module';
 
 const logger = new Logger('MongoDB');
 
@@ -39,6 +40,7 @@ const logger = new Logger('MongoDB');
       },
     }),
     TimetableModule,
+    RoomsModule,
   ],
   controllers: [AppController],
   providers: [AppService, AppResolver],
