@@ -30,4 +30,8 @@ export class RoomsService {
       total: insertedRooms.length,
     };
   }
+
+  async getAllRooms() {
+    return this.roomModel.find().exec();
+  }
 }
