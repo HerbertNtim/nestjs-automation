@@ -57,12 +57,25 @@ export class RoomsService {
       });
     }
 
-    // 3. Replace existing room records.
-    await this.roomModel.deleteMany({});
+    // 3. Replace existing room records using a transaction.
+    const session = await this.roomModel.db.startSession();
 
-    const insertedRooms =
-      await this.roomModel.insertMany(roomsToInsert);
+    let insertedRooms: RoomDocument[] = [];
 
+    try {
+      await session.withTransaction(async () => {
+        await this.roomModel.deleteMany({}, { session });
+
+        insertedRooms = await this.roomModel.insertMany(
+          roomsToInsert,
+          { session },
+        );
+      });
+    } finally {
+      await session.endSession();
+    }
+
+    // 4. Return the import result.
     return {
       message: 'Rooms imported successfully',
       total: insertedRooms.length,
