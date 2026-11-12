@@ -1,4 +1,3 @@
-
 import { ExcelParser } from '../../common/parsers/excel-parser';
 import { Room } from '../schemas/room.schema';
 
@@ -26,17 +25,14 @@ export class RoomExcelParser extends ExcelParser {
     const roomNameIndex = 1;
     const roomCapacityIndex = 2;
     const roomDetailsIndex = 3;
+    const seenRoomNames = new Set<string>();
 
     for (
       let rowNumber = 1;
       rowNumber <= worksheet.actualRowCount;
       rowNumber++
     ) {
-      const name = this.getRowCellValue(
-        worksheet,
-        rowNumber,
-        roomNameIndex,
-      );
+      const name = this.getRowCellValue(worksheet, rowNumber, roomNameIndex);
 
       const capacityValue = this.getRowCellValue(
         worksheet,
@@ -62,6 +58,17 @@ export class RoomExcelParser extends ExcelParser {
         );
       }
 
+      // Check for duplicate room names (case-insensitive).
+      const normalizedName = name.trim().toLowerCase();
+
+      if (seenRoomNames.has(normalizedName)) {
+        throw new Error(
+          `Duplicate room name "${name}" at spreadsheet row ${rowNumber}.`,
+        );
+      }
+
+      seenRoomNames.add(normalizedName);
+
       // Validate capacity.
       if (!/^\d+$/.test(capacityValue)) {
         throw new Error(
@@ -78,9 +85,7 @@ export class RoomExcelParser extends ExcelParser {
       }
 
       // Validate room details.
-      const details = roomDetails
-        .split(',')
-        .map((value) => value.trim());
+      const details = roomDetails.split(',').map((value) => value.trim());
 
       if (details.length !== 3) {
         throw new Error(
@@ -106,9 +111,7 @@ export class RoomExcelParser extends ExcelParser {
     }
 
     if (this.data.length === 0) {
-      throw new Error(
-        'No valid room records were found in the spreadsheet.',
-      );
+      throw new Error('No valid room records were found in the spreadsheet.');
     }
   }
 
