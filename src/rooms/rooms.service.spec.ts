@@ -1,3 +1,4 @@
+
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import Excel from 'exceljs';
@@ -30,6 +31,7 @@ describe('RoomsService', () => {
 
   const mockCloudinaryService = {
     uploadImage: vi.fn(),
+    deleteImage: vi.fn().mockResolvedValue(undefined),
   };
 
   beforeEach(async () => {
@@ -113,6 +115,9 @@ describe('RoomsService', () => {
       'rooms/qr-codes',
     );
 
+    // Successful imports must not delete uploaded QR images.
+    expect(mockCloudinaryService.deleteImage).not.toHaveBeenCalled();
+
     // MongoDB transaction
     expect(mockRoomModel.db.startSession).toHaveBeenCalledTimes(1);
     expect(mockSession.withTransaction).toHaveBeenCalledTimes(1);
@@ -154,7 +159,7 @@ describe('RoomsService', () => {
     });
   });
 
-  it('should close the session and propagate errors when room insertion fails', async () => {
+  it('should close the session, clean up uploaded images and propagate errors when room insertion fails', async () => {
     const workbook = new Excel.Workbook();
     const worksheet = workbook.addWorksheet('Rooms');
 
@@ -188,6 +193,7 @@ describe('RoomsService', () => {
       'Database insert failed',
     );
 
+    // MongoDB transaction
     expect(mockRoomModel.db.startSession).toHaveBeenCalledTimes(1);
     expect(mockSession.withTransaction).toHaveBeenCalledTimes(1);
 
@@ -197,6 +203,11 @@ describe('RoomsService', () => {
     );
 
     expect(mockRoomModel.insertMany).toHaveBeenCalledTimes(1);
+
+    // Uploaded QR images must be deleted when the import fails.
+    expect(mockCloudinaryService.deleteImage).toHaveBeenCalledWith(
+      'rooms/test-qr',
+    );
 
     // The session must close even when insertion fails.
     expect(mockSession.endSession).toHaveBeenCalledTimes(1);

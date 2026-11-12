@@ -1,4 +1,3 @@
-
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { v2 as cloudinary } from 'cloudinary';
@@ -11,9 +10,7 @@ export class CloudinaryService {
       cloud_name: this.configService.getOrThrow<string>(
         'CLOUDINARY_CLOUD_NAME',
       ),
-      api_key: this.configService.getOrThrow<string>(
-        'CLOUDINARY_API_KEY',
-      ),
+      api_key: this.configService.getOrThrow<string>('CLOUDINARY_API_KEY'),
       api_secret: this.configService.getOrThrow<string>(
         'CLOUDINARY_API_SECRET',
       ),
@@ -48,5 +45,13 @@ export class CloudinaryService {
 
       Readable.from([image]).pipe(uploadStream);
     });
+  }
+
+  async deleteImage(publicId: string): Promise<void> {
+    const result = await cloudinary.uploader.destroy(publicId);
+
+    if (result.result !== 'ok' && result.result !== 'not found') {
+      throw new Error(`Failed to delete Cloudinary image: ${publicId}`);
+    }
   }
 }
