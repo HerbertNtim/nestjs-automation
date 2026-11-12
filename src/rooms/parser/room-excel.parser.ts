@@ -4,7 +4,7 @@ import { Room } from '../schemas/room.schema';
 
 export type RoomImportData = Pick<
   Room,
-  'name' | 'capacity' | 'building' | 'college' | 'floor' | 'qrCodeImageUrl'
+  'name' | 'capacity' | 'building' | 'college' | 'floor'
 >;
 
 export class RoomExcelParser extends ExcelParser {
@@ -26,31 +26,50 @@ export class RoomExcelParser extends ExcelParser {
     const roomNameIndex = 1;
     const roomCapacityIndex = 2;
     const roomDetailsIndex = 3;
-    const roomQRCodeIndex = 4;
 
-    for (let rowNumber = 1; rowNumber <= worksheet.actualRowCount; rowNumber++) {
-      const name = this.getRowCellValue(worksheet, rowNumber, roomNameIndex);
+    for (
+      let rowNumber = 1;
+      rowNumber <= worksheet.actualRowCount;
+      rowNumber++
+    ) {
+      const name = this.getRowCellValue(
+        worksheet,
+        rowNumber,
+        roomNameIndex,
+      );
+
       const capacityValue = this.getRowCellValue(
         worksheet,
         rowNumber,
         roomCapacityIndex,
       );
+
       const roomDetails = this.getRowCellValue(
         worksheet,
         rowNumber,
         roomDetailsIndex,
       );
 
-      const qrCodeImageUrl = worksheet
-        .getRow(rowNumber)
-        .getCell(roomQRCodeIndex).hyperlink;
-
-      // Skip incomplete rows, preserving the original behavior.
-      if (!name || !capacityValue || !roomDetails || !qrCodeImageUrl) {
+      // Skip completely empty rows.
+      if (!name && !capacityValue && !roomDetails) {
         continue;
       }
 
-      const capacity = Number.parseInt(capacityValue, 10);
+      // Reject partially completed rows.
+      if (!name || !capacityValue || !roomDetails) {
+        throw new Error(
+          `Incomplete room data at spreadsheet row ${rowNumber}.`,
+        );
+      }
+
+      // Validate capacity.
+      if (!/^\d+$/.test(capacityValue)) {
+        throw new Error(
+          `Invalid room capacity at spreadsheet row ${rowNumber}.`,
+        );
+      }
+
+      const capacity = Number(capacityValue);
 
       if (!Number.isSafeInteger(capacity) || capacity <= 0) {
         throw new Error(
@@ -58,9 +77,24 @@ export class RoomExcelParser extends ExcelParser {
         );
       }
 
-      const [building = '', college = '', floor = ''] = roomDetails
+      // Validate room details.
+      const details = roomDetails
         .split(',')
         .map((value) => value.trim());
+
+      if (details.length !== 3) {
+        throw new Error(
+          `Invalid room details at spreadsheet row ${rowNumber}. Expected building, college and floor.`,
+        );
+      }
+
+      const [building, college, floor] = details;
+
+      if (!building || !college) {
+        throw new Error(
+          `Building and college are required at spreadsheet row ${rowNumber}.`,
+        );
+      }
 
       this.data.push({
         name: name.trim(),
@@ -68,12 +102,13 @@ export class RoomExcelParser extends ExcelParser {
         building,
         college,
         floor,
-        qrCodeImageUrl: qrCodeImageUrl.trim(),
       });
     }
 
     if (this.data.length === 0) {
-      throw new Error('No valid room records were found in the spreadsheet.');
+      throw new Error(
+        'No valid room records were found in the spreadsheet.',
+      );
     }
   }
 
