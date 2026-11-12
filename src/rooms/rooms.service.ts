@@ -1,30 +1,68 @@
-import { Injectable } from '@nestjs/common';
-import { Room } from './schemas/room.schema';
-import { Model } from 'mongoose';
+
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { RoomExcelParser } from './parser/room-excel.parser';
+import { Model } from 'mongoose';
+
+import { Room, RoomDocument } from './schemas/room.schema';
+import {
+  RoomExcelParser,
+  RoomImportData,
+} from './parser/room-excel.parser';
+import { CloudinaryService } from './parser/cloudinary';
+import { QrCodeService } from './parser/qr-code';
 
 @Injectable()
 export class RoomsService {
   constructor(
     @InjectModel(Room.name)
-    private readonly roomModel: Model<Room>
+    private readonly roomModel: Model<RoomDocument>,
+    private readonly qrCodeService: QrCodeService,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   async importRooms(buffer: Buffer) {
-     // 1. Initialize the Excel parser.
+    // 1. Parse and validate the Excel file.
     const roomParser = new RoomExcelParser(buffer);
 
-    // 2. Parse the Excel spreadsheet.
-    const rooms = await roomParser.initializeWorkSheetData();
+    let rooms: RoomImportData[];
 
-    // 3. Remove existing room records.
+    try {
+      rooms = await roomParser.initializeWorkSheetData();
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Unable to process the Excel file.';
+
+      throw new BadRequestException(message);
+    }
+
+    // 2. Generate QR codes and upload them to Cloudinary.
+    const roomsToInsert: Array<
+      RoomImportData & { qrCodeImageUrl: string }
+    > = [];
+
+    for (const room of rooms) {
+      const { image } =
+        await this.qrCodeService.generateRoomQRCode();
+
+      const { imageUrl } = await this.cloudinaryService.uploadImage(
+        image,
+        'rooms/qr-codes',
+      );
+
+      roomsToInsert.push({
+        ...room,
+        qrCodeImageUrl: imageUrl,
+      });
+    }
+
+    // 3. Replace existing room records.
     await this.roomModel.deleteMany({});
 
-    // 4. Insert the newly parsed records.
-    const insertedRooms = await this.roomModel.insertMany(rooms);
+    const insertedRooms =
+      await this.roomModel.insertMany(roomsToInsert);
 
-    // 5. Return the import summary.
     return {
       message: 'Rooms imported successfully',
       total: insertedRooms.length,
