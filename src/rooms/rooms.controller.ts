@@ -1,4 +1,4 @@
-import { BadRequestException, Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Controller, FileTypeValidator, ParseFilePipe, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { RoomsService } from './rooms.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 
@@ -8,7 +8,13 @@ export class RoomsController {
 
   @Post("upload")
   @UseInterceptors(FileInterceptor('file'))
-  async uploadRooms(@UploadedFile() file: {
+  async uploadRooms(@UploadedFile(new ParseFilePipe({
+    validators: [
+      new FileTypeValidator({
+        fileType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      })
+    ]
+  })) file: {
     buffer: Buffer;
     originalname: string;
     mimetype: string;
