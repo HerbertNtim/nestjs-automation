@@ -1,4 +1,3 @@
-
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import Excel from 'exceljs';
@@ -99,21 +98,15 @@ describe('RoomsService', () => {
       acknowledged: true,
     });
 
-    mockRoomModel.insertMany.mockImplementation(
-      async (rooms) => rooms,
-    );
+    mockRoomModel.insertMany.mockImplementation(async (rooms) => rooms);
 
     const result = await service.importRooms(buffer);
 
     // QR code generation
-    expect(
-      mockQrCodeService.generateRoomQRCode,
-    ).toHaveBeenCalledTimes(2);
+    expect(mockQrCodeService.generateRoomQRCode).toHaveBeenCalledTimes(2);
 
     // Cloudinary uploads
-    expect(
-      mockCloudinaryService.uploadImage,
-    ).toHaveBeenCalledTimes(2);
+    expect(mockCloudinaryService.uploadImage).toHaveBeenCalledTimes(2);
 
     expect(mockCloudinaryService.uploadImage).toHaveBeenCalledWith(
       Buffer.from('test-image'),
@@ -159,5 +152,53 @@ describe('RoomsService', () => {
       message: 'Rooms imported successfully',
       total: 2,
     });
+  });
+
+  it('should close the session and propagate errors when room insertion fails', async () => {
+    const workbook = new Excel.Workbook();
+    const worksheet = workbook.addWorksheet('Rooms');
+
+    worksheet.addRow([
+      'Room 101',
+      50,
+      'Block A, College of Engineering, 1st Floor',
+    ]);
+
+    const buffer = Buffer.from(await workbook.xlsx.writeBuffer());
+
+    mockQrCodeService.generateRoomQRCode.mockResolvedValue({
+      identifier: 'test-identifier',
+      image: Buffer.from('test-image'),
+    });
+
+    mockCloudinaryService.uploadImage.mockResolvedValue({
+      imageUrl: 'https://cloudinary.com/room-qr.png',
+      publicId: 'rooms/test-qr',
+    });
+
+    mockRoomModel.deleteMany.mockResolvedValue({
+      acknowledged: true,
+    });
+
+    mockRoomModel.insertMany.mockRejectedValue(
+      new Error('Database insert failed'),
+    );
+
+    await expect(service.importRooms(buffer)).rejects.toThrow(
+      'Database insert failed',
+    );
+
+    expect(mockRoomModel.db.startSession).toHaveBeenCalledTimes(1);
+    expect(mockSession.withTransaction).toHaveBeenCalledTimes(1);
+
+    expect(mockRoomModel.deleteMany).toHaveBeenCalledWith(
+      {},
+      { session: mockSession },
+    );
+
+    expect(mockRoomModel.insertMany).toHaveBeenCalledTimes(1);
+
+    // The session must close even when insertion fails.
+    expect(mockSession.endSession).toHaveBeenCalledTimes(1);
   });
 });
