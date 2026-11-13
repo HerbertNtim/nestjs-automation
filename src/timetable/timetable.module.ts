@@ -4,6 +4,7 @@ import { TimetableService } from './timetable.service';
 import { TimetableResolver } from './timetable.resolver';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Timetable, TimetableSchema } from './schemas/timetable.schema';
+import { Room, RoomSchema } from '../rooms/schemas/room.schema';
 
 @Module({
   imports: [
@@ -11,6 +12,10 @@ import { Timetable, TimetableSchema } from './schemas/timetable.schema';
       {
         name: Timetable.name,
         schema: TimetableSchema
+      },
+      {
+        name: Room.name,
+        schema: RoomSchema
       }
     ])
   ],
