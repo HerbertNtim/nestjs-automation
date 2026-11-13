@@ -1,16 +1,9 @@
-import {
-  BadRequestException,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ClientSession, Model } from 'mongoose';
 
 import { Room, RoomDocument } from './schemas/room.schema';
-import {
-  RoomExcelParser,
-  RoomImportData,
-} from './parser/room-excel.parser';
+import { RoomExcelParser, RoomImportData } from './parser/room-excel.parser';
 import { CloudinaryService } from './parser/cloudinary';
 import { QrCodeService } from './parser/qr-code';
 
@@ -49,19 +42,16 @@ export class RoomsService {
 
     try {
       // 2. Generate QR codes and upload them to Cloudinary.
-      const roomsToInsert: Array<
-        RoomImportData & { qrCodeImageUrl: string }
-      > = [];
+      const roomsToInsert: Array<RoomImportData & { qrCodeImageUrl: string }> =
+        [];
 
       for (const room of rooms) {
-        const { image } =
-          await this.qrCodeService.generateRoomQRCode();
+        const { image } = await this.qrCodeService.generateRoomQRCode();
 
-        const { imageUrl, publicId } =
-          await this.cloudinaryService.uploadImage(
-            image,
-            'rooms/qr-codes',
-          );
+        const { imageUrl, publicId } = await this.cloudinaryService.uploadImage(
+          image,
+          'rooms/qr-codes',
+        );
 
         uploadedPublicIds.push(publicId);
 
@@ -79,10 +69,9 @@ export class RoomsService {
       await session.withTransaction(async () => {
         await this.roomModel.deleteMany({}, { session });
 
-        insertedRooms = await this.roomModel.insertMany(
-          roomsToInsert,
-          { session },
-        );
+        insertedRooms = await this.roomModel.insertMany(roomsToInsert, {
+          session,
+        });
       });
 
       transactionCommitted = true;
@@ -113,28 +102,26 @@ export class RoomsService {
     }
   }
 
-  private async cleanupUploadedImages(
-    publicIds: string[],
-  ): Promise<void> {
+  private async cleanupUploadedImages(publicIds: string[]): Promise<void> {
     const results = await Promise.allSettled(
-      publicIds.map((publicId) =>
-        this.cloudinaryService.deleteImage(publicId),
-      ),
+      publicIds.map((publicId) => this.cloudinaryService.deleteImage(publicId)),
     );
 
     results.forEach((result, index) => {
       if (result.status === 'rejected') {
         this.logger.error(
           `Failed to clean up Cloudinary image: ${publicIds[index]}`,
-          result.reason instanceof Error
-            ? result.reason.stack
-            : undefined,
+          result.reason instanceof Error ? result.reason.stack : undefined,
         );
       }
     });
   }
 
   async getAllRooms() {
-    return this.roomModel.find().exec();
+    const rooms = await this.roomModel.find().lean().exec();
+    return rooms.map((room) => ({
+      ...room,
+      id: room._id.toString(),
+    }));
   }
 }
