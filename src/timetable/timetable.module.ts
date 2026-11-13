@@ -5,6 +5,7 @@ import { TimetableResolver } from './timetable.resolver';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Timetable, TimetableSchema } from './schemas/timetable.schema';
 import { Room, RoomSchema } from '../rooms/schemas/room.schema';
+import { TimetableExcelParser } from './parser/timetable-excel-parser';
 
 @Module({
   imports: [
@@ -20,6 +21,6 @@ import { Room, RoomSchema } from '../rooms/schemas/room.schema';
     ])
   ],
   controllers: [TimetableController],
-  providers: [TimetableService, TimetableResolver]
+  providers: [TimetableService, TimetableResolver, TimetableExcelParser],
 })
 export class TimetableModule {}

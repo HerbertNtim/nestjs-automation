@@ -13,6 +13,21 @@ import {
 } from '../../rooms/schemas/room.schema';
 import { Timetable } from '../schemas/timetable.schema';
 
+export type Semester =
+  | 'First Semester'
+  | 'Second Semester'
+  | 'Supplementary';
+
+export type ExamType =
+  | 'Mid Semester'
+  | 'End of Semester'
+  | 'Supplementary Exams';
+
+export interface TimetableImportConfig {
+  semester: Semester;
+  examType: ExamType;
+}
+
 type ParsedTimetable = Pick<
   Timetable,
   | 'courseCode'
@@ -31,9 +46,6 @@ type ParsedTimetable = Pick<
 
 @Injectable()
 export class TimetableExcelParser extends ExcelParser {
-  private readonly semester = 'First Semester';
-  private readonly examType = 'End of Semester';
-
   constructor(
     @InjectModel(Room.name)
     private readonly roomModel: Model<RoomDocument>,
@@ -41,14 +53,16 @@ export class TimetableExcelParser extends ExcelParser {
     super();
   }
 
-  async parse(params: GetFileParams): Promise<ParsedTimetable[]> {
+  async parse(
+    params: GetFileParams,
+    config: TimetableImportConfig,
+  ): Promise<ParsedTimetable[]> {
     const worksheet = await this.getWorkSheet(params);
 
     if (!worksheet) {
       throw new BadRequestException('No Excel file was provided.');
     }
 
-    // Load existing rooms once, then resolve their names locally.
     const existingRooms = await this.roomModel
       .find()
       .select('_id name')
@@ -77,10 +91,12 @@ export class TimetableExcelParser extends ExcelParser {
       const courseCode = parts[0].trim();
       const courseName = parts[1].trim();
       const paperClass = parts[3].trim();
+
       const roomNames = parts[5]
         .split('/')
         .map((name) => name.trim())
         .filter(Boolean);
+
       const date = parts[6].trim();
       const sessionAndTime = parts[7].trim().split(/\s+/);
       const session = Number.parseInt(sessionAndTime[1], 10);
@@ -135,8 +151,8 @@ export class TimetableExcelParser extends ExcelParser {
         session,
         time,
         rooms: roomIds,
-        examType: this.examType,
-        semester: this.semester,
+        examType: config.examType,
+        semester: config.semester,
         examiners: [],
         allocationSchedule,
       });

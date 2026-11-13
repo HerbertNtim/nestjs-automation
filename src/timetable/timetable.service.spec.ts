@@ -4,12 +4,18 @@ import { getModelToken } from '@nestjs/mongoose';
 
 import { TimetableService } from './timetable.service';
 import { Timetable } from './schemas/timetable.schema';
+import { TimetableExcelParser } from './parser/timetable-excel-parser';
 
 describe('TimetableService', () => {
   let service: TimetableService;
 
   const mockTimetableModel = {
     find: vi.fn(),
+    insertMany: vi.fn(),
+  };
+
+  const mockTimetableExcelParser = {
+    parse: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -19,6 +25,10 @@ describe('TimetableService', () => {
         {
           provide: getModelToken(Timetable.name),
           useValue: mockTimetableModel,
+        },
+        {
+          provide: TimetableExcelParser,
+          useValue: mockTimetableExcelParser,
         },
       ],
     }).compile();
