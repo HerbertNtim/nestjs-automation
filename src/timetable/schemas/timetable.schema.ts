@@ -1,4 +1,3 @@
-
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
 
@@ -45,8 +44,11 @@ export class Timetable {
   @Prop({ required: true })
   time: string;
 
-  @Prop({ type: [String], default: [] })
-  examiners: string[];
+  @Prop({
+    type: [{ type: Types.ObjectId, ref: 'Examiner' }],
+    default: [],
+  })
+  examiners: Types.ObjectId[];
 
   @Prop()
   class?: string;
