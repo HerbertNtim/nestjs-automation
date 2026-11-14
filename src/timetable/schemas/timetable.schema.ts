@@ -45,10 +45,11 @@ export class Timetable {
   time: string;
 
   @Prop({
-    type: [{ type: Types.ObjectId, ref: 'Examiner' }],
+    type: [String],
+    required: true,
     default: [],
   })
-  examiners: Types.ObjectId[];
+  examiners: string[];
 
   @Prop()
   class?: string;
