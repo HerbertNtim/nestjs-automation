@@ -7,15 +7,16 @@ import {
   Timetable,
   TimetableDocument,
 } from './schemas/timetable.schema';
-import { TimetableExcelParser, TimetableImportConfig } from './parser/timetable-excel-parser';
-;
+import {
+  TimetableExcelParser,
+  TimetableImportConfig,
+} from './parser/timetable-excel-parser';
 
 @Injectable()
 export class TimetableService {
   constructor(
     @InjectModel(Timetable.name)
     private readonly timetableModel: Model<TimetableDocument>,
-
     private readonly timetableExcelParser: TimetableExcelParser,
   ) {}
 
@@ -27,11 +28,13 @@ export class TimetableService {
     buffer: Buffer,
     config: TimetableImportConfig,
   ) {
-    const timetables = await this.timetableExcelParser.parse(
+    const timetableRecords = await this.timetableExcelParser.parse(
       { buffer },
       config,
     );
 
-    return this.timetableModel.insertMany(timetables);
+    return this.timetableModel.insertMany(timetableRecords, {
+      ordered: true,
+    });
   }
 }

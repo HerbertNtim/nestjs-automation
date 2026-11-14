@@ -1,4 +1,3 @@
-
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -90,6 +89,7 @@ export class TimetableExcelParser extends ExcelParser {
 
       const courseCode = parts[0].trim();
       const courseName = parts[1].trim();
+      const examinerName = parts[2].trim();
       const paperClass = parts[3].trim();
 
       const roomNames = parts[5]
@@ -106,6 +106,7 @@ export class TimetableExcelParser extends ExcelParser {
       if (
         !courseCode ||
         !courseName ||
+        !examinerName ||
         !paperClass ||
         !date ||
         !Number.isInteger(session) ||
@@ -153,7 +154,7 @@ export class TimetableExcelParser extends ExcelParser {
         rooms: roomIds,
         examType: config.examType,
         semester: config.semester,
-        examiners: [],
+        examiners: [examinerName],
         allocationSchedule,
       });
     });
