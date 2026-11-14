@@ -2,9 +2,25 @@ import { Module } from '@nestjs/common';
 import { TimetableController } from './timetable.controller';
 import { TimetableService } from './timetable.service';
 import { TimetableResolver } from './timetable.resolver';
+import { MongooseModule } from '@nestjs/mongoose';
+import { Timetable, TimetableSchema } from './schemas/timetable.schema';
+import { Room, RoomSchema } from '../rooms/schemas/room.schema';
+import { TimetableExcelParser } from './parser/timetable-excel-parser';
 
 @Module({
+  imports: [
+    MongooseModule.forFeature([
+      {
+        name: Timetable.name,
+        schema: TimetableSchema
+      },
+      {
+        name: Room.name,
+        schema: RoomSchema
+      }
+    ])
+  ],
   controllers: [TimetableController],
-  providers: [TimetableService, TimetableResolver]
+  providers: [TimetableService, TimetableResolver, TimetableExcelParser],
 })
 export class TimetableModule {}
