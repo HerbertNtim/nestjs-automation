@@ -56,4 +56,32 @@ export class TimetableController {
       examType: DEFAULT_EXAM_TYPE,
     });
   }
+
+  @Post("update")
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: {
+        files: 1,
+        fields: 0,
+        parts: 1,
+      },
+    })
+  )
+  async updateTimetable(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new FileTypeValidator({
+            fileType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          }),
+        ],
+      }),
+    )
+    file: UploadedTimetableFile
+  ) {
+    return this.timetableService.updateTimetable(file.buffer, {
+      semester: DEFAULT_SEMESTER,
+      examType: DEFAULT_EXAM_TYPE,
+    });
+  }
 }
