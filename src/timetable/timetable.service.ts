@@ -27,13 +27,37 @@ export class TimetableService {
       config,
     );
 
-    return this.timetableModel.insertMany(timetableRecords, {
-      ordered: true,
-    });
+    const session = await this.timetableModel.db.startSession();
+
+    try {
+      let insertedRecords: TimetableDocument[] = [];
+
+      await session.withTransaction(async () => {
+        // Remove the existing timetable for this semester and exam type.
+        await this.timetableModel
+          .deleteMany({
+            semester: config.semester,
+            examType: config.examType,
+          })
+          .session(session);
+
+        // Insert the new timetable.
+        insertedRecords = await this.timetableModel.insertMany(
+          timetableRecords,
+          {
+            ordered: true,
+            session,
+          },
+        );
+      });
+
+      return insertedRecords;
+    } finally {
+      await session.endSession();
+    }
   }
 
   // Update timetable from Excel file
-
   async updateTimetable(buffer: Buffer, config: TimetableImportConfig) {
     const timetableRecords = await this.timetableExcelParser.parse(
       { buffer },
@@ -51,6 +75,8 @@ export class TimetableService {
         .find({
           courseCode: record.courseCode,
           class: record.class,
+          semester: config.semester,
+          examType: config.examType,
         })
         .select('_id')
         .lean()
