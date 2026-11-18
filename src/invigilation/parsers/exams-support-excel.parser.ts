@@ -1,4 +1,3 @@
-import { Types } from 'mongoose';
 
 import { ExcelParser } from '../../common/parsers/excel-parser';
 import { ExamSupportUserType } from '../schemas/exams-support.schema';
@@ -7,8 +6,6 @@ export interface ExamSupportImportRecord {
   name: string;
   category: string;
   hours: number;
-  numberOfSessionsDone?: number;
-  paymentConfig: Types.ObjectId;
   role: string;
   userType: ExamSupportUserType;
   payStatus: 'CASH' | 'PAYROLL';
@@ -21,7 +18,6 @@ export interface ExamSupportImportRecord {
 export class ExamsSupportExcelParser extends ExcelParser {
   private readonly defaultConfig = {
     hours: 0,
-    paymentConfig: new Types.ObjectId('621b7025ed183c7853cd245a'),
     role: 'invigilator',
   };
 
