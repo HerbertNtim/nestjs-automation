@@ -1,7 +1,10 @@
+
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 
 export type PaymentConfigDocument = HydratedDocument<PaymentConfig>;
+
+export const PAYMENT_CONFIG_MODEL = 'paymentConfig';
 
 @Schema({ timestamps: true })
 export class PaymentConfig {

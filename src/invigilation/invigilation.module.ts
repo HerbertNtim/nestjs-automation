@@ -3,7 +3,7 @@ import { InvigilationController } from './invigilation.controller';
 import { InvigilationService } from './invigilation.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ExamSupport, ExamSupportSchema } from './schemas/exams-support.schema';
-import { PaymentConfig, PaymentConfigSchema, } from './schemas/payment-config.schema';
+import { PaymentConfig, PaymentConfigSchema, PAYMENT_CONFIG_MODEL } from './schemas/payment-config.schema';
 
 @Module({
   imports: [
@@ -13,7 +13,7 @@ import { PaymentConfig, PaymentConfigSchema, } from './schemas/payment-config.sc
         schema: ExamSupportSchema,
       },
       {
-        name: PaymentConfig.name,
+        name: PAYMENT_CONFIG_MODEL,
         schema: PaymentConfigSchema,
       },
     ]),

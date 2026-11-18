@@ -48,7 +48,7 @@ export class ExamSupport {
   @Prop({ type: Number, default: 0 })
   numOfSessionDone: number;
 
-  @Prop({ type: Types.ObjectId, ref: 'PaymentConfig' })
+  @Prop({ type: Types.ObjectId, ref: 'paymentConfig' })
   paymentConfig?: Types.ObjectId;
 
   @Prop({ type: String })
