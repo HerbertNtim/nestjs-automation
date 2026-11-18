@@ -65,10 +65,6 @@ export class TimetableService {
     );
 
     const operations = [];
-    const unmatchedRecords: {
-      courseCode: string;
-      class: string;
-    }[] = [];
 
     for (const record of timetableRecords) {
       const existingRecords = await this.timetableModel
@@ -82,20 +78,25 @@ export class TimetableService {
         .lean()
         .exec();
 
+      // No matching record: insert a new timetable record.
       if (existingRecords.length === 0) {
-        unmatchedRecords.push({
-          courseCode: record.courseCode,
-          class: record.class ?? '',
+        operations.push({
+          insertOne: {
+            document: record,
+          },
         });
+
         continue;
       }
 
+      // Multiple matching records: reject the operation.
       if (existingRecords.length > 1) {
         throw new BadRequestException(
           `Multiple timetable records found for course "${record.courseCode}" and class "${record.class}". Update cannot proceed safely.`,
         );
       }
 
+      // One matching record: update it.
       operations.push({
         updateOne: {
           filter: { _id: existingRecords[0]._id },
@@ -125,8 +126,7 @@ export class TimetableService {
     return {
       message: 'Timetable update completed.',
       updatedCount: result?.modifiedCount ?? 0,
-      unmatchedCount: unmatchedRecords.length,
-      unmatchedRecords,
+      insertedCount: result?.insertedCount ?? 0,
     };
   }
 }
