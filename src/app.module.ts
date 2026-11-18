@@ -8,6 +8,7 @@ import { AppResolver } from './app.resolver';
 import { AppService } from './app.service';
 import { TimetableModule } from './timetable/timetable.module';
 import { RoomsModule } from './rooms/rooms.module';
+import { InvigilationModule } from './invigilation/invigilation.module';
 
 const logger = new Logger('MongoDB');
 
@@ -41,6 +42,7 @@ const logger = new Logger('MongoDB');
     }),
     TimetableModule,
     RoomsModule,
+    InvigilationModule,
   ],
   controllers: [AppController],
   providers: [AppService, AppResolver],
